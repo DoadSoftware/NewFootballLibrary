@@ -46,9 +46,11 @@ public class FootballDaoImpl implements FootballDao {
     public Player getPlayer(String whatToProcess, String valueToProcess) {
         switch (whatToProcess) {
         case FootballUtil.PLAYER:
-            return getSession().createQuery("FROM Player WHERE PlayerId = :playerId",Player.class)
-                .setParameter("playerId", Integer.parseInt(valueToProcess))
-                .uniqueResult();
+        	return getSession().createQuery(
+        		    "FROM Player p WHERE p.playerId = :playerId",
+        		    Player.class)
+        		    .setParameter("playerId", Integer.parseInt(valueToProcess))
+        		    .uniqueResult();
         default:
             return null;
         }
@@ -58,9 +60,12 @@ public class FootballDaoImpl implements FootballDao {
     public Team getTeam(String whatToProcess, String valueToProcess) {
         switch (whatToProcess) {
         case FootballUtil.TEAM:
-            return getSession().createQuery("FROM Team WHERE TeamId = :teamId",Team.class)
-                .setParameter("teamId", Integer.parseInt(valueToProcess))
-                .uniqueResult();
+        	return getSession().createQuery(
+        		    "FROM Team t WHERE t.teamId = :teamId",
+        		    Team.class)
+        		    .setParameter("teamId", Integer.parseInt(valueToProcess))
+        		    .uniqueResult();
+            
         default:
             return null;
         }
@@ -80,7 +85,9 @@ public class FootballDaoImpl implements FootballDao {
     public List<Player> getPlayers(String whatToProcess, String valueToProcess) {
         switch (whatToProcess) {
         case FootballUtil.TEAM:
-            return getSession().createQuery("FROM Player WHERE TeamId = :teamId",Player.class)
+        	return getSession().createQuery(
+        		    "FROM Player p WHERE p.teamId = :teamId",
+        		    Player.class)
             	.setParameter("teamId", Integer.parseInt(valueToProcess)).getResultList();
         default:
             return null;
@@ -109,7 +116,8 @@ public class FootballDaoImpl implements FootballDao {
 
     @Override
     public Ground getGround(int ground_id) {
-        return getSession().createQuery("FROM Ground WHERE GroundId = :groundId",Ground.class).setParameter("groundId", ground_id).uniqueResult();
+    	return getSession().createQuery(
+    		    "FROM Ground g WHERE g.groundId = :groundId",Ground.class).setParameter("groundId", ground_id).uniqueResult();
     }
 
     @Override
