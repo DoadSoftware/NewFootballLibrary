@@ -1,8 +1,11 @@
 package com.football.util;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -11,13 +14,19 @@ import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -69,9 +78,12 @@ import com.football.model.Event;
 import com.football.model.Fixture;
 import com.football.model.Football;
 import com.football.model.HeadToHead;
+import com.football.model.HeadToHeadPlayer;
+import com.football.model.HeadToHeadTeam;
 import com.football.model.HeaderText;
 import com.football.model.LeaderBoard;
 import com.football.model.LeagueTeam;
+import com.football.model.Master_H2H;
 import com.football.model.Match;
 import com.football.model.MatchStats;
 import com.football.model.Player;
@@ -813,6 +825,383 @@ public class FootballFunctions {
 		        }
 		  }
 	 }
+	
+	public static String addSubString(String main_string,String sub_string, int position) {
+	    StringBuilder sb = new StringBuilder(main_string);
+		    sb.insert(position, sub_string);
+	    return sb.toString();
+	}
+	
+	public static int getPlayerGoals(Match match, int playerId)
+	{
+	    int goals = 0;
+	    if(match.getMatchStats() == null)
+	        return 0;
+	    for(MatchStats ms : match.getMatchStats())
+	    {
+	        if(ms == null)
+	            continue;
+	        if(ms.getPlayerId() != playerId)
+	            continue;
+	        if(ms.getStats_type() == null)
+	            continue;
+	        if(ms.getStats_type().equalsIgnoreCase("goal") || ms.getStats_type().equalsIgnoreCase("Home_Goal") || 
+	        		ms.getStats_type().equalsIgnoreCase("Away_Goal"))
+	        {
+	            goals += ms.getStatsCount();
+	        }
+	    }
+	    return goals;
+	}
+	
+	public static int getPlayerYellowCards(Match match, int playerId) {
+	    int yellowCards = 0;
+	    if (match.getMatchStats() == null)
+	        return 0;
+	    for (MatchStats ms : match.getMatchStats()) {
+	        if (ms.getPlayerId() != playerId)
+	            continue;
+	        if (ms.getStats_type() == null)
+	            continue;
+	        if (ms.getStats_type().equalsIgnoreCase("yellow_card")
+	                || ms.getStats_type().equalsIgnoreCase("yellow")) {
+	            yellowCards += ms.getStatsCount();
+	        }
+	    }
+	    return yellowCards;
+	}
+	
+	public static int getPlayerRedCards(Match match, int playerId) {
+	    int redCards = 0;
+	    if (match.getMatchStats() == null)
+	        return 0;
+	    for (MatchStats ms : match.getMatchStats()) {
+	        if (ms.getPlayerId() != playerId)
+	            continue;
+	        if (ms.getStats_type() == null)
+	            continue;
+	        if (ms.getStats_type().equalsIgnoreCase("red_card")
+	                || ms.getStats_type().equalsIgnoreCase("red")) {
+	            redCards += ms.getStatsCount();
+	        }
+	    }
+	    return redCards;
+	}
+	
+	public static String writeHeadToHead(Match match) throws IOException
+	{
+	    String line_txt = String.format("%-140s", "");
+	    String txt = String.format("%-140s", "");
+	
+	    txt = addSubString(txt, "|", 0);
+	    txt = addSubString(txt, "|    (A) - 'SC' - FOOTBALL SCORE CARD\n", 0);
+	    txt = addSubString(txt, "|\n", 0);
+	    txt = addSubString(txt, "| Contents\n", 0);
+	    txt = addSubString(txt, "|\n", 0);
+	    txt = addSubString(txt, "| DOAD Football H2H File generated on " + LocalDate.now() + " at " + LocalTime.now() + "\n", 0);
+	    txt = addSubString(txt, "| \n", 0);
+	    txt = addSubString(txt, "|\n", 0);
+	
+	    Files.write(Paths.get(FootballUtil.FOOTBALL_DIRECTORY + FootballUtil.HEADTOHEAD_DIRECTORY + match.getMatchFileName().replace(".json", ".txt")),
+	            Arrays.asList(txt),StandardOpenOption.CREATE);
+	    setTextToTextFile(match, txt, line_txt);
+	
+	    return null;
+	}
+	
+	public static void setTextToTextFile(Match match, String txt, String line_txt) throws IOException {
+
+	    Files.write( Paths.get(FootballUtil.FOOTBALL_DIRECTORY + FootballUtil.HEADTOHEAD_DIRECTORY + match.getMatchFileName().replace(".json", ".txt")), Arrays.asList(txt),
+	            StandardOpenOption.CREATE);
+	
+	    txt = String.format("%-140s", "");
+	    txt = addSubString(txt, "|", 0);
+	    txt = addSubString(txt,"|============================================================================================================================================================\n",0);
+	
+	    txt = addSubString(txt, "|  94 - 96       Goals\n", 0);
+	    txt = addSubString(txt, "|  88 - 92       Player Code\n", 0);
+	    txt = addSubString(txt, "|  67 - 86       Opponent Team\n", 0);
+	    txt = addSubString(txt, "|  46 - 65       Team Name\n", 0);
+	    txt = addSubString(txt, "|  25 - 44       Venue\n", 0);
+	    txt = addSubString(txt, "|   4 - 23       Match File Name\n", 0);
+	    txt = addSubString(txt, "|   1 -  2       Line Identifier ('SC')\n", 0);
+	
+	    txt = addSubString(txt, "|\n", 0);
+	    txt = addSubString(txt, "|  Columns       Meaning\n", 0);
+	    txt = addSubString(txt, "|\n", 0);
+	    txt = addSubString(txt, "|  Football Player Statistics\n", 0);
+	    txt = addSubString(txt, "|\n", 0);
+	
+	    Files.write(Paths.get(FootballUtil.FOOTBALL_DIRECTORY + FootballUtil.HEADTOHEAD_DIRECTORY + match.getMatchFileName().replace(".json", ".txt")),Arrays.asList(txt),
+	            StandardOpenOption.APPEND);
+	
+	    line_txt = String.format("%-140s", "");
+	    line_txt = addSubString(line_txt, "|", 0);
+	    line_txt = addSubString(line_txt, "<Match File Name   >", 3);
+	    line_txt = addSubString(line_txt, "<Venue Name        >", 24);
+	    line_txt = addSubString(line_txt, "<Team Name         >", 45);
+	    line_txt = addSubString(line_txt, "<Opponent Name     >", 66);
+	    line_txt = addSubString(line_txt, "<PLY>", 87);
+	    line_txt = addSubString(line_txt, "<G>", 93);
+	
+	    Files.write(Paths.get(FootballUtil.FOOTBALL_DIRECTORY + FootballUtil.HEADTOHEAD_DIRECTORY + match.getMatchFileName().replace(".json", ".txt")), Arrays.asList(line_txt),
+	            StandardOpenOption.APPEND);
+	
+	    setHeadToHeadData(match, line_txt, "PLAYING");
+	}
+	
+	public static void setHeadToHeadData(Match match, String line_txt, String type) throws IOException {
+	    switch (type) {
+	    case "PLAYING":
+	        for (MatchStats ms : match.getMatchStats()) {
+	            if (ms == null || ms.getStats_type() == null
+	                    || !ms.getStats_type().equalsIgnoreCase("goal")) {
+	                continue;
+	            }
+	            line_txt = String.format("%-140s", "");
+	            line_txt = addSubString(line_txt, "SC", 0);
+	            line_txt = addSubString(line_txt,match.getMatchFileName(), 3);
+	            line_txt = addSubString(line_txt, match.getGround().getCity(), 24);
+	            int playerId = ms.getPlayerId();
+	            boolean isHomePlayer = false;
+	            
+	            for (Player p : match.getHomeSquad()) {
+	                if (p.getPlayerId() == playerId) {
+	                    isHomePlayer = true;
+	                    break;
+	                }
+	            }
+	            if (!isHomePlayer && match.getHomeSubstitutes() != null) {
+	                for (Player p : match.getHomeSubstitutes()) {
+	                    if (p.getPlayerId() == playerId) {
+	                        isHomePlayer = true;
+	                        break;
+	                    }
+	                }
+	            }
+	
+	            if (isHomePlayer) {
+	                line_txt = addSubString(line_txt,match.getHomeTeam().getTeamName4(), 45);
+	                line_txt = addSubString(line_txt, match.getAwayTeam().getTeamName4(), 66);
+	
+	            } else {
+	                line_txt = addSubString(line_txt,match.getAwayTeam().getTeamName4(), 45);
+	                line_txt = addSubString(line_txt, match.getHomeTeam().getTeamName4(), 66);
+	
+	            }
+	            line_txt = addSubString(line_txt, String.valueOf(playerId), 92 - String.valueOf(playerId).length());
+	
+	            int goals = getPlayerGoals(match, playerId);
+	            line_txt = addSubString(line_txt, String.valueOf(goals), 96 - String.valueOf(goals).length());
+	
+	            Files.write(Paths.get(FootballUtil.FOOTBALL_DIRECTORY + FootballUtil.HEADTOHEAD_DIRECTORY + match.getMatchFileName().replace(".json", ".txt")),
+	                    Arrays.asList(line_txt), StandardOpenOption.APPEND);
+	        }
+	        break;
+	    }
+	}
+	
+	
+	public static void exportMatchData(Match match, String directory) throws IOException {
+
+	    List<String> lineByLineData = new ArrayList<String>();
+	    StringBuilder matchDataTxt = new StringBuilder();
+
+	    lineByLineData.add("|");
+	    lineByLineData.add("|    (A) - 'SC' - Football Score Card");
+	    lineByLineData.add("|");
+	    lineByLineData.add("| DOAD Export File generated on " + LocalDate.now() + " at " + LocalTime.now());
+	    lineByLineData.add("|============================================================================================================================================================");
+	    lineByLineData.add("|   1 - 2       Line Ident ('SC')");
+	    lineByLineData.add("|   4 - 22      Match File Name");
+	    lineByLineData.add("|  24 - 42      Venue");
+	    lineByLineData.add("|  44 - 62      Team");
+	    lineByLineData.add("|  64 - 82      Opponent");
+	    lineByLineData.add("|  84 - 86      Player Code");
+	    lineByLineData.add("|  88 - 90      Goals");
+	    lineByLineData.add("|  91 - 93      Yellow Card");
+	    lineByLineData.add("|  94 - 96      Red Card");
+	    lineByLineData.add("|");
+	    lineByLineData.add("| <Match File Name   >< Venue Name       >< Team Name        >< Opponent Name    ><PLY><G><Y><R>");
+	    
+	    matchDataTxt = new StringBuilder();
+	    //-------------------------------------------------------HOME TEAM-------------------------------------------------------
+	    for (Player player : match.getHomeSquad()) {
+	    	matchDataTxt.setLength(0); // Clear the StringBuilder for each iteration
+	    	matchDataTxt.append(String.format("%-140s", "")); // Initial padding
+	    	matchDataTxt.insert(0, "SC");
+	    	matchDataTxt.insert(3, match.getMatchFileName());
+		    matchDataTxt.insert(23, match.getGround().getCity());
+		    matchDataTxt.insert(43, match.getHomeTeam().getTeamName4());
+		    matchDataTxt.insert(63, match.getAwayTeam().getTeamName4());
+		    matchDataTxt.insert(86 - String.valueOf(player.getPlayerId()).length(), player.getPlayerId());
+		    
+		    String goals = String.valueOf(getPlayerGoals(match, player.getPlayerId()));
+		    matchDataTxt.insert(90 - String.valueOf(goals).length(), goals);
+		    
+		    String yellow = String.valueOf(getPlayerYellowCards(match, player.getPlayerId()));
+		    String red = String.valueOf(getPlayerRedCards(match, player.getPlayerId()));
+		    matchDataTxt.replace( 93 - yellow.length(),93, yellow);
+		    matchDataTxt.replace( 96 - red.length(), 96,red);
+		    
+	        lineByLineData.add(matchDataTxt.toString());
+	    }
+	  //-------------------------------------------------------HOME SUBSTITUTES-------------------------------------------------------
+	 for (Player player : match.getHomeSubstitutes()) {
+		 	matchDataTxt.setLength(0); // Clear the StringBuilder for each iteration
+	    	matchDataTxt.append(String.format("%-140s", "")); // Initial padding
+	    	matchDataTxt.insert(0, "SC");
+	    	matchDataTxt.insert(3, match.getMatchFileName());
+		    matchDataTxt.insert(23, match.getGround().getCity());
+		    matchDataTxt.insert(43, match.getHomeTeam().getTeamName4());
+		    matchDataTxt.insert(63, match.getAwayTeam().getTeamName4());
+		    String playerId = String.valueOf(player.getPlayerId());
+		    matchDataTxt.replace(86 - playerId.length(), 86,  playerId);
+		    String goals = String.valueOf(getPlayerGoals(match, player.getPlayerId()));
+		    matchDataTxt.replace(90 - goals.length(), 90, goals);
+		    String yellow = String.valueOf(getPlayerYellowCards(match, player.getPlayerId()));
+		    String red = String.valueOf(getPlayerRedCards(match, player.getPlayerId()));
+		    matchDataTxt.replace( 93 - yellow.length(),93, yellow);
+		    matchDataTxt.replace( 96 - red.length(), 96,red);
+		    
+		    lineByLineData.add(matchDataTxt.toString());
+	 }
+
+	    //-------------------------------------------------------AWAY TEAM-------------------------------------------------------
+	    
+	    for (Player player : match.getAwaySquad()) {
+	    	matchDataTxt.setLength(0); // Clear the StringBuilder for each iteration
+	    	matchDataTxt.append(String.format("%-140s", "")); // Initial padding
+	    	matchDataTxt.insert(0, "SC");
+	    	matchDataTxt.insert(3, match.getMatchFileName());
+		    matchDataTxt.insert(23, match.getGround().getCity());
+		    matchDataTxt.insert(43, match.getAwayTeam().getTeamName4());
+		    matchDataTxt.insert(63, match.getHomeTeam().getTeamName4());
+		    matchDataTxt.insert(86 - String.valueOf(player.getPlayerId()).length(), player.getPlayerId());
+		    String goals = String.valueOf(getPlayerGoals(match, player.getPlayerId()));
+		    matchDataTxt.insert(90 - String.valueOf(goals).length(), goals);
+		    String yellow = String.valueOf(getPlayerYellowCards(match, player.getPlayerId()));
+		    String red = String.valueOf(getPlayerRedCards(match, player.getPlayerId()));
+		    matchDataTxt.replace( 93 - yellow.length(),93, yellow);
+		    matchDataTxt.replace( 96 - red.length(), 96,red);
+		    
+	        lineByLineData.add(matchDataTxt.toString());
+	    }
+	    
+	  //-------------------------------------------------------AWAY SUBSTITUTES-------------------------------------------------------
+	 for (Player player : match.getAwaySubstitutes()) {
+		 
+		 	matchDataTxt.setLength(0); // Clear the StringBuilder for each iteration
+	    	matchDataTxt.append(String.format("%-140s", "")); // Initial padding
+	    	matchDataTxt.insert(0, "SC");
+	    	matchDataTxt.insert(3, match.getMatchFileName());
+		    matchDataTxt.insert(23, match.getGround().getCity());
+		    matchDataTxt.insert(43, match.getAwayTeam().getTeamName4());
+		    matchDataTxt.insert(63, match.getHomeTeam().getTeamName4());
+		    String playerId = String.valueOf(player.getPlayerId());
+		    matchDataTxt.replace(86 - playerId.length(), 86, playerId);
+		    String goals = String.valueOf(getPlayerGoals(match, player.getPlayerId()));
+		    matchDataTxt.replace( 90 - goals.length(),90,goals);
+		    String yellow = String.valueOf(getPlayerYellowCards(match, player.getPlayerId()));
+		    String red = String.valueOf(getPlayerRedCards(match, player.getPlayerId()));
+		    matchDataTxt.replace( 93 - yellow.length(),93, yellow);
+		    matchDataTxt.replace( 96 - red.length(), 96,red);
+			    
+		     lineByLineData.add(matchDataTxt.toString());
+	 }
+	    
+	    //-------------------------------------------------------TEAM TOTALS-------------------------------------------------------
+	    lineByLineData.add("|");
+	    lineByLineData.add("|============================================================================================================================================================");
+	    lineByLineData.add("|   1 - 2       Line Ident ('TT')");
+	    lineByLineData.add("|   4 - 23      Match File");
+	    lineByLineData.add("|  25 - 44      Venue");
+	    lineByLineData.add("|  46 - 65      Team");
+	    lineByLineData.add("|  67 - 83      Opponent");
+	    lineByLineData.add("|  84 - 86      Goals");
+	    lineByLineData.add("|");
+	    lineByLineData.add("| <Match File Name   >< Venue Name       >< Team Name        >< Opponent Name    ><G>");
+	    
+	    // Home
+	    matchDataTxt = new StringBuilder(String.format("%-140s", ""));
+	    matchDataTxt.insert(0, "TT");
+	    matchDataTxt.insert(3, match.getMatchFileName());
+	    matchDataTxt.insert(23, match.getGround().getCity());
+	    matchDataTxt.insert(43, match.getHomeTeam().getTeamName4());
+	    matchDataTxt.insert(63, match.getAwayTeam().getTeamName4());
+	    String homeGoals = String.valueOf(match.getHomeTeamScore());
+	     matchDataTxt.insert(84 - homeGoals.length(), homeGoals);
+	     lineByLineData.add(matchDataTxt.toString());
+
+	    // Away
+	    matchDataTxt = new StringBuilder(String.format("%-140s", ""));
+	    matchDataTxt.replace(0, 2, "TT");
+	    matchDataTxt.insert(3, match.getMatchFileName());
+	    matchDataTxt.insert(23, match.getGround().getCity());
+	    matchDataTxt.insert(43, match.getAwayTeam().getTeamName4());
+	    matchDataTxt.insert(63, match.getHomeTeam().getTeamName4());
+	    String awayGoals = String.valueOf(match.getAwayTeamScore());
+	     matchDataTxt.insert(84 - awayGoals.length(), awayGoals);
+	     lineByLineData.add(matchDataTxt.toString());
+
+	    //-------------------------------------------------------WRITE FILE-------------------------------------------------------
+	    FileWriter fileWriter = new FileWriter(FootballUtil.FOOTBALL_DIRECTORY + FootballUtil.HEADTOHEAD_DIRECTORY + match.getMatchFileName().replace(".json", ".h2h"));
+
+	    for (String str : lineByLineData) {
+	        fileWriter.write(str + System.lineSeparator());
+	    }
+	    fileWriter.close();
+	}
+	
+	public static Master_H2H extractHeadToHead(Match match, FootballService footballService, String directory) throws IOException {
+
+	    List<String> headToHead = new ArrayList<>();
+	    Master_H2H headToHead_master = new Master_H2H();
+	    File file = new File(directory + FootballUtil.HEADTOHEAD_DIRECTORY + match.getMatchFileName().replace(".json", ".h2h"));
+
+	    if (!file.exists()) {
+	        return headToHead_master;
+	    }
+
+	    try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+	        String line;
+	        while ((line = br.readLine()) != null) {
+	            if (line.startsWith("|"))
+	                continue;
+	            if (line.startsWith("SC") || line.startsWith("TT")) {
+	                headToHead.add(line);
+	            }
+	        }
+	    }
+	    for (String row : headToHead) {
+	        if (row.startsWith("SC")) {
+	            String matchFile = row.substring(3, 23).trim();
+	            String teamName = row.substring(45, 65).trim();
+	            String opponentName = row.substring(66, 86).trim();
+	            int playerId = Integer.parseInt(row.substring(87, 92).trim());
+	            int goals = Integer.parseInt(row.substring(93, 96).trim());
+	            Team team = footballService.getTeams().stream().filter(t -> t.getTeamName1().equalsIgnoreCase(teamName)).findFirst().orElse(null);
+
+	            Team opponent = footballService.getTeams().stream().filter(t -> t.getTeamName1().equalsIgnoreCase(opponentName)).findFirst().orElse(null);
+
+	            headToHead_master.getH2hPlayer().add(new HeadToHeadPlayer(playerId, goals, matchFile, team, opponent));
+	        }
+
+	        else if (row.startsWith("TT")) {
+	            String teamName = row.substring(45, 65).trim();
+	            String opponentName = row.substring(66, 86).trim();
+	            int goals = Integer.parseInt(row.substring(87, 91).trim());
+	            Team team = footballService.getTeams().stream().filter(t -> t.getTeamName1().equalsIgnoreCase(teamName)).findFirst().orElse(null);
+
+	            Team opponent = footballService.getTeams().stream().filter(t -> t.getTeamName1().equalsIgnoreCase(opponentName)).findFirst().orElse(null);
+	            String venue = row.substring(24, 44).trim();
+
+	            headToHead_master.getH2hTeam().add( new HeadToHeadTeam(goals, row.substring(3, 23).trim(), team, opponent, venue));
+	        }
+	    }
+
+	    return headToHead_master;
+	}
 	
 	public static List<ApiPlayerStats> PlayerStats(List<ApiPlayerStats> apiPlayerStats, String which_data) {
 		 

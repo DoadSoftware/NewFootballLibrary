@@ -18,6 +18,7 @@ public class FootballUtil {
 	public final static String CLOCK_JSON = "CLOCK.JSON";
 	public final static String API_XML = "API.XML";
 	public final static String XML_EXTENSION = ".xml";
+	public final static String HEADTOHEAD_DIRECTORY = "HeadToHead/";
 	public final static String FOOTBALL_API_PATH = "https://api.performfeeds.com/soccerdata/";
 	public final static String FOOTBALL_API_JSON = "_fmt=json";
 	public final static String FOOTBALL_API_MODE = "_rt=b";
