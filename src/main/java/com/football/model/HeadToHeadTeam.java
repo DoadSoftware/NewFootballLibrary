@@ -18,14 +18,18 @@ public class HeadToHeadTeam implements Cloneable {
 
     private Team team;
     private Team opponentTeam;
+    private int yellowCards;
+    private int redCards;
 
     private String venue;
 
-    public HeadToHeadTeam(int teamGoals, String matchFileName, Team team, Team opponentTeam, String venue) {
+    public HeadToHeadTeam(int teamGoals, String matchFileName, Team team, Team opponentTeam, String venue, int yellowCards, int redCards) {
 
         this.teamGoals = teamGoals;
         this.matchFileName = matchFileName;
         this.team = team;
+        this.yellowCards = yellowCards;
+        this.redCards = redCards;
         this.opponentTeam = opponentTeam;
         this.venue = venue;
     }
@@ -34,7 +38,23 @@ public class HeadToHeadTeam implements Cloneable {
         return teamGoals;
     }
 
-    public void setTeamGoals(int teamGoals) {
+    public int getYellowCards() {
+		return yellowCards;
+	}
+
+	public void setYellowCards(int yellowCards) {
+		this.yellowCards = yellowCards;
+	}
+
+	public int getRedCards() {
+		return redCards;
+	}
+
+	public void setRedCards(int redCards) {
+		this.redCards = redCards;
+	}
+
+	public void setTeamGoals(int teamGoals) {
         this.teamGoals = teamGoals;
     }
 
@@ -111,18 +131,13 @@ public class HeadToHeadTeam implements Cloneable {
         }
     }
 
-    @Override
-    public String toString() {
-        return "HeadToHeadTeam{" +
-                "teamGoals=" + teamGoals +
-                ", totalMatches=" + totalMatches +
-                ", matchFileName='" + matchFileName + '\'' +
-                ", P1_Goals=" + P1_Goals +
-                ", P2_Goals=" + P2_Goals +
-                ", P3_Goals=" + P3_Goals +
-                ", team=" + team +
-                ", opponentTeam=" + opponentTeam +
-                ", venue='" + venue + '\'' +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "HeadToHeadTeam [teamGoals=" + teamGoals + ", totalMatches=" + totalMatches + ", matchFileName="
+				+ matchFileName + ", P1_Goals=" + P1_Goals + ", P2_Goals=" + P2_Goals + ", P3_Goals=" + P3_Goals
+				+ ", team=" + team + ", opponentTeam=" + opponentTeam + ", yellowCards=" + yellowCards + ", redCards="
+				+ redCards + ", venue=" + venue + "]";
+	}
+
+   
 }

@@ -854,6 +854,44 @@ public class FootballFunctions {
 	    return goals;
 	}
 	
+	public static int getTeamRedCards(Match match, int teamId) {
+	    int redCards = 0;
+	    if (match.getMatchStats() == null)
+	        return 0;
+	    for (MatchStats ms : match.getMatchStats()) {
+	        if (ms.getPlayer() == null)
+	            continue;
+	        if (ms.getPlayer().getTeamId() != teamId)
+	            continue;
+	        if (ms.getStats_type() == null)
+	            continue;
+	        if (ms.getStats_type().equalsIgnoreCase("red_card")
+	                || ms.getStats_type().equalsIgnoreCase("red")) {
+	            redCards += ms.getStatsCount();
+	        }
+	    }
+	    return redCards;
+	}
+	
+	public static int getTeamYellowCards(Match match, int teamId) {
+	    int yellowCards = 0;
+	    if (match.getMatchStats() == null)
+	        return 0;
+	    for (MatchStats ms : match.getMatchStats()) {
+	        if (ms.getPlayer() == null)
+	            continue;
+	        if (ms.getPlayer().getTeamId() != teamId)
+	            continue;
+	        if (ms.getStats_type() == null)
+	            continue;
+	        if (ms.getStats_type().equalsIgnoreCase("yellow_card")
+	                || ms.getStats_type().equalsIgnoreCase("yellow")) {
+	            yellowCards += ms.getStatsCount();
+	        }
+	    }
+	    return yellowCards;
+	}
+	
 	public static int getPlayerYellowCards(Match match, int playerId) {
 	    int yellowCards = 0;
 	    if (match.getMatchStats() == null)
@@ -1119,8 +1157,10 @@ public class FootballFunctions {
 	    lineByLineData.add("|  46 - 65      Team");
 	    lineByLineData.add("|  67 - 83      Opponent");
 	    lineByLineData.add("|  84 - 86      Goals");
+	    lineByLineData.add("|  87 - 89      Yellow Crad");
+	    lineByLineData.add("|  90 - 92      Red Card");
 	    lineByLineData.add("|");
-	    lineByLineData.add("| <Match File Name   >< Venue Name       >< Team Name        >< Opponent Name    ><G>");
+	    lineByLineData.add("| <Match File Name   >< Venue Name       >< Team Name        >< Opponent Name    ><G><Y><R>");
 	    
 	    // Home
 	    matchDataTxt = new StringBuilder(String.format("%-140s", ""));
@@ -1130,8 +1170,12 @@ public class FootballFunctions {
 	    matchDataTxt.insert(43, match.getHomeTeam().getTeamName4());
 	    matchDataTxt.insert(63, match.getAwayTeam().getTeamName4());
 	    String homeGoals = String.valueOf(match.getHomeTeamScore());
-	     matchDataTxt.insert(84 - homeGoals.length(), homeGoals);
-	     lineByLineData.add(matchDataTxt.toString());
+		matchDataTxt.insert(84 - homeGoals.length(), homeGoals);
+		String homeYellow = String.valueOf(getTeamYellowCards(match,match.getHomeTeam().getTeamId()));
+		matchDataTxt.replace(87 - homeYellow.length(),87,homeYellow);
+		String homeRed = String.valueOf(getTeamRedCards(match,match.getHomeTeam().getTeamId()));
+		matchDataTxt.replace(90 - homeRed.length(),90,homeRed);
+		lineByLineData.add(matchDataTxt.toString());
 
 	    // Away
 	    matchDataTxt = new StringBuilder(String.format("%-140s", ""));
@@ -1142,6 +1186,11 @@ public class FootballFunctions {
 	    matchDataTxt.insert(63, match.getHomeTeam().getTeamName4());
 	    String awayGoals = String.valueOf(match.getAwayTeamScore());
 	     matchDataTxt.insert(84 - awayGoals.length(), awayGoals);
+	     String awayYellow = String.valueOf(getTeamYellowCards(match,match.getAwayTeam().getTeamId()));
+	     matchDataTxt.replace(87 - awayYellow.length(),87,awayYellow);
+	     String awayRed = String.valueOf(getTeamRedCards(match,match.getAwayTeam().getTeamId()));
+	    	matchDataTxt.replace(90 - awayRed.length(),90,awayRed);
+	     
 	     lineByLineData.add(matchDataTxt.toString());
 
 	    //-------------------------------------------------------WRITE FILE-------------------------------------------------------
@@ -1180,23 +1229,27 @@ public class FootballFunctions {
 	            String opponentName = row.substring(66, 86).trim();
 	            int playerId = Integer.parseInt(row.substring(87, 92).trim());
 	            int goals = Integer.parseInt(row.substring(93, 96).trim());
+	            int yellowCard = Integer.parseInt(row.substring(97, 100).trim());
+	            int redCard = Integer.parseInt(row.substring(101, 104).trim());
 	            Team team = footballService.getTeams().stream().filter(t -> t.getTeamName1().equalsIgnoreCase(teamName)).findFirst().orElse(null);
 
 	            Team opponent = footballService.getTeams().stream().filter(t -> t.getTeamName1().equalsIgnoreCase(opponentName)).findFirst().orElse(null);
 
-	            headToHead_master.getH2hPlayer().add(new HeadToHeadPlayer(playerId, goals, matchFile, team, opponent));
+	            headToHead_master.getH2hPlayer().add(new HeadToHeadPlayer(playerId, goals, matchFile, team, opponent, yellowCard, redCard));
 	        }
 
 	        else if (row.startsWith("TT")) {
 	            String teamName = row.substring(45, 65).trim();
 	            String opponentName = row.substring(66, 86).trim();
 	            int goals = Integer.parseInt(row.substring(87, 91).trim());
+	            int yellowCards = Integer.parseInt(row.substring(92, 95).trim());
+	            int redCards = Integer.parseInt(row.substring(96, 99).trim());
 	            Team team = footballService.getTeams().stream().filter(t -> t.getTeamName1().equalsIgnoreCase(teamName)).findFirst().orElse(null);
 
 	            Team opponent = footballService.getTeams().stream().filter(t -> t.getTeamName1().equalsIgnoreCase(opponentName)).findFirst().orElse(null);
 	            String venue = row.substring(24, 44).trim();
 
-	            headToHead_master.getH2hTeam().add( new HeadToHeadTeam(goals, row.substring(3, 23).trim(), team, opponent, venue));
+	            headToHead_master.getH2hTeam().add( new HeadToHeadTeam(goals, row.substring(3, 23).trim(), team, opponent, venue, yellowCards, redCards));
 	        }
 	    }
 

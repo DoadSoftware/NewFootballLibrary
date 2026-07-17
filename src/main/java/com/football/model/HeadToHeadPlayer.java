@@ -12,14 +12,18 @@ public class HeadToHeadPlayer implements Cloneable {
     private String matchFileName;
     private Team team;
     private Team opponentTeam;
+    private int yellowCard;
+    private int redCard;
     private boolean teamVsTeam = false;
     
-    public HeadToHeadPlayer(int playerId, int goals, String matchFileName, Team team, Team opponentTeam) {
+    public HeadToHeadPlayer(int playerId, int goals, String matchFileName, Team team, Team opponentTeam, int yellowCard, int redCard) {
         this.playerId = playerId;
         this.goals = goals;
         this.matchFileName = matchFileName;
         this.team = team;
         this.opponentTeam = opponentTeam;
+        this.yellowCard = yellowCard;
+        this.redCard = redCard;
     }
 
     public int getPlayerId() {
@@ -61,8 +65,26 @@ public class HeadToHeadPlayer implements Cloneable {
     public void setOpponentTeam(Team opponentTeam) {
         this.opponentTeam = opponentTeam;
     }
+    
+    
 
-    public boolean isTeamVsTeam() {
+    public int getYellowCard() {
+		return yellowCard;
+	}
+
+	public void setYellowCard(int yellowCard) {
+		this.yellowCard = yellowCard;
+	}
+
+	public int getRedCard() {
+		return redCard;
+	}
+
+	public void setRedCard(int redCard) {
+		this.redCard = redCard;
+	}
+
+	public boolean isTeamVsTeam() {
         return teamVsTeam;
     }
 
@@ -82,8 +104,11 @@ public class HeadToHeadPlayer implements Cloneable {
 	@Override
 	public String toString() {
 		return "HeadToHeadPlayer [playerId=" + playerId + ", goals=" + goals + ", matchFileName=" + matchFileName
-				+ ", team=" + team + ", opponentTeam=" + opponentTeam + ", teamVsTeam=" + teamVsTeam + "]";
+				+ ", team=" + team + ", opponentTeam=" + opponentTeam + ", yellowCard=" + yellowCard + ", redCard="
+				+ redCard + ", teamVsTeam=" + teamVsTeam + "]";
 	}
+
+	
 
 
 
