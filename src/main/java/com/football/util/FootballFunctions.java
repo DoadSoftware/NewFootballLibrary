@@ -12,8 +12,11 @@ import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.Socket;
+import java.net.URI;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -101,6 +104,9 @@ import kong.unirest.Unirest;
 import kong.unirest.UnirestException;
 import org.w3c.dom.Element;
 
+import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.model.ValueRange;
+
 public class FootballFunctions {
 	
 	public static LiveMatch LiveMatch;	
@@ -108,6 +114,169 @@ public class FootballFunctions {
 	public static rankings rankings;
 	public static PassMatrix PassMatrix;
 	public static MatchPreview matchPreview;
+	private static final ObjectMapper MAPPER = new ObjectMapper();
+	
+	public static String sendTeamLogos(Match match, HttpClient CLIENT, String GRAPHICS_TOKEN) {
+		
+		try {
+	        String homeLogoUrl = "https://media-cdn.flowics.com/user-library-prod/v1/team/12442/" + match.getHomeTeam().getTeamGroup() 
+	        		+ "/" + match.getHomeTeam().getTeamBadge() + FootballUtil.PNG_EXTENSION;
+	        String awayLogoUrl = "https://media-cdn.flowics.com/user-library-prod/v1/team/12442/" + match.getAwayTeam().getTeamGroup() 
+	        		+ "/" + match.getAwayTeam().getTeamBadge() + FootballUtil.PNG_EXTENSION;
+
+	        String json = """
+	            [
+	              {
+	                "id": "n7",
+	                "controls": {
+	                  "HomeLogo": {
+	                    "value": {
+	                      "type": "url",
+	                      "url": "%s"
+	                    }
+	                  },
+	                  "AwayLogo": {
+	                    "value": {
+	                      "type": "url",
+	                      "url": "%s"
+	                    }
+	                  }
+	                }
+	              }
+	            ]
+	            """.formatted(homeLogoUrl, awayLogoUrl);
+
+	        HttpRequest request = HttpRequest.newBuilder().uri(URI.create("https://api.flowics.com/graphics/"
+	                 + GRAPHICS_TOKEN + "/control/overlays")).header("Content-Type", "application/json")
+	                .method("PATCH", HttpRequest.BodyPublishers.ofString(json)).build();
+
+	        java.net.http.HttpResponse<String> response = CLIENT.send(request,java.net.http.HttpResponse.BodyHandlers.ofString());
+
+	        System.out.println("Flowics Logo Status : " + response.statusCode());
+	        System.out.println("Flowics Logo Response : " + response.body());
+
+	        if (response.statusCode() >= 200 &&
+	            response.statusCode() < 300) {
+
+	            return "OK";
+	        }
+
+	        return "ERROR";
+
+	    } catch (Exception e) {
+
+	        e.printStackTrace();
+	        return "ERROR";
+	    }
+		
+	}
+	
+	public static void overlayState(String graphicsToken, String integrationId, String state, HttpClient CLIENT) {
+
+		try {
+		
+		String json = """
+		[
+		{
+		"integrationId":"%s",
+		"state":"%s"
+		}
+		]
+		""".formatted(integrationId, state);
+		
+		HttpRequest request = HttpRequest.newBuilder().uri(URI.create("https://api.flowics.com/graphics/"
+		            + graphicsToken + "/control/overlays")).method("PATCH",HttpRequest.BodyPublishers.ofString(json))
+		.header("Accept", "application/json")
+		.header("Content-Type", "application/json")
+		.build();
+		
+		java.net.http.HttpResponse<String> response = CLIENT.send(request,
+		java.net.http.HttpResponse.BodyHandlers.ofString());
+		
+		System.out.println("HTTP Status : " + response.statusCode());
+		System.out.println("Response    : " + response.body());
+		
+		} catch (Exception e) {
+		e.printStackTrace();
+		}
+	}
+	
+	public static void matchJsonDataToFlowics(Object data, String FLOWICS_URL, String TOKEN, HttpClient CLIENT) {
+
+        try {
+
+            long totalStart = System.currentTimeMillis();
+
+            // Convert object to JSON
+            String json = MAPPER.writeValueAsString(data);
+            long jsonTime = System.currentTimeMillis();
+
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(FLOWICS_URL))
+                    .header("Authorization", TOKEN).header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json)).build();
+
+            long requestTime = System.currentTimeMillis();
+
+            java.net.http.HttpResponse<String> response =
+                    CLIENT.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            long responseTime = System.currentTimeMillis();
+
+            System.out.println("----------------------------------------");
+            System.out.println("Response Code : " + response.statusCode());
+            System.out.println("Flowics Response : " + response.body());
+
+            System.out.println("JSON Creation : " + (jsonTime - totalStart) + " ms");
+            System.out.println("Request Build : " + (requestTime - jsonTime) + " ms");
+            System.out.println("Server Response : " + (responseTime - requestTime) + " ms");
+            System.out.println("Total Time : " + (responseTime - totalStart) + " ms");
+            System.out.println("----------------------------------------");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+	
+	public static void sendAsync(Object data, String flowicsUrl, String token, HttpClient CLIENT) {
+
+		try {
+		
+			String json = MAPPER.writeValueAsString(data);
+			
+			HttpRequest request = HttpRequest.newBuilder().uri(URI.create(flowicsUrl))
+			.header("Authorization", token).header("Content-Type", "application/json")
+			.POST(HttpRequest.BodyPublishers.ofString(json)).build();
+			
+			CLIENT.sendAsync(request, java.net.http.HttpResponse.BodyHandlers.ofString())
+			.thenAccept(response -> {
+			   System.out.println("--------------------------------------------");
+			   System.out.println("Flowics URL : " + flowicsUrl);
+			   System.out.println("Response Code : " + response.statusCode());
+			   System.out.println("--------------------------------------------");
+			})
+			.exceptionally(ex -> {
+			   ex.printStackTrace();
+			   return null;
+			});
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void writeMatchDataToGoogleSheet(Sheets service, String spreadsheetId, Match session_match) throws Exception {
+	    List<List<Object>> values = new ArrayList<>();
+
+	    // Header
+	    values.add(Arrays.asList("Player ID","Jersey","Full Name","Role","Nationality","Team ID"));
+	    // Data
+	    for (Player p : session_match.getHomeSquad()) {
+	        values.add(Arrays.asList(p.getPlayerId(),p.getJersey_number(),p.getFull_name(),p.getRole(),p.getNationality(),p.getTeamId()));
+	    }
+
+	    ValueRange body = new ValueRange().setValues(values);
+	    service.spreadsheets().values().update(spreadsheetId,"Home Squad!A1",body).setValueInputOption("RAW").execute();
+	}
 	
 	public static String ordinal(int i) {
 	    int mod100 = i % 100;
@@ -1805,6 +1974,21 @@ public class FootballFunctions {
 	public static List<Fixture> processAllFixtures(FootballService footballService) {
 		List<Fixture> fixtures = footballService.getFixtures();
 		for(Team tm : footballService.getTeams()) {
+			for(Fixture fix : fixtures) {
+				if(fix.getHometeamid() == tm.getTeamId()) {
+					fix.setHome_Team(tm);
+				}
+				if(fix.getAwayteamid() == tm.getTeamId()) {
+					fix.setAway_Team(tm);
+				}
+			}
+		}
+		return fixtures;
+	}
+	
+	public static List<Fixture> processAllFixtures(List<Fixture> Tour_Fixtures, List<Team> teams) {
+		List<Fixture> fixtures = Tour_Fixtures;
+		for(Team tm : teams) {
 			for(Fixture fix : fixtures) {
 				if(fix.getHometeamid() == tm.getTeamId()) {
 					fix.setHome_Team(tm);

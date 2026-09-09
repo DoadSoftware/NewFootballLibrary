@@ -55,8 +55,15 @@ public class FootballUtil {
 	public final static String SUPER_CUP_FF_SCENE_PATH = "/Default/FullFrames";
 	public final static String competitionId = "3oa9e03e7w9nr8kqwqc3tlqz9";
 	
-	public final static String API_PATH1 = 
-			"https://service.instatfootball.com/feed.php?id=1153675&key=G3Yr3PPd&tpl=207&match_id=";
+	public final static String API_PATH1 = "https://service.instatfootball.com/feed.php?id=1153675&key=G3Yr3PPd&tpl=207&match_id=";
+	
+	public final static String API_TOKEN_FLOWICS = "ObUxaDlLiMM3aDOL0IvG";
+	
+	public static final String FLOWICS_LIVESCORE_URL = "https://discover.flowics.com/discover/public/datasources/company/9711/datasource_input/6a757b9b9e2d1b72149154de/ingest/content";
+	public static final String LIVESCORE_TOKEN = "Bearer I.9711.6a757b9b9e2d1b72149154de.1QulgSK2S8aUAP1J3kk8Wg";
+	
+	public static final String FLOWICS_MATCH_INFO_URL = "https://discover.flowics.com/discover/public/datasources/company/9711/datasource_input/6a75917629088b37aff35cc5/ingest/content";
+	public static final String MATCH_INFO_TOKEN = "Bearer I.9711.6a75917629088b37aff35cc5.VhpZGjSIQ1uIONjNpwnOrQ";
 	
 	public final static String API_PATH2 = "&lang_id=1&lang=en&format=json";
 	

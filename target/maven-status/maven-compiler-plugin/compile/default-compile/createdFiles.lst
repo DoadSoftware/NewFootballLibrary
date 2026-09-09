@@ -1,6 +1,7 @@
 com\football\EuroLeague\Penalties.class
 com\football\model\Officials.class
 com\football\EuroLeague\TotalPlusPV.class
+com\football\Flowics\LiveScore.class
 com\football\model\Clock.class
 com\football\EuroLeague\SeasonalPlayerStats.class
 com\football\EuroLeague\MatchPreview.class
@@ -60,9 +61,11 @@ com\football\EuroLeague\ContestantPreview.class
 com\football\EuroLeague\SeasonalStats.class
 com\football\EuroLeague\Sport.class
 com\football\model\MatchStats.class
+com\football\Flowics\MatchInfo.class
 com\football\model\TeamColor.class
 com\football\model\Statistics.class
 com\football\util\FootballUtil.class
+com\football\model\HeadToHeadPlayer.class
 com\football\EuroLeague\TotalPlusTakeOns.class
 com\football\EuroLeague\Possession$PossesionData.class
 com\football\model\ApiEventStats.class
@@ -71,6 +74,7 @@ com\football\EuroLeague\FormAnyComp.class
 com\football\EuroLeague\TotalPlusPass.class
 com\football\model\Bugs.class
 com\football\model\HeaderText.class
+com\football\model\Master_H2H.class
 com\football\EuroLeague\possessionStats$interval.class
 com\football\EuroLeague\TotalMinusPV.class
 com\football\model\LeagueTeam.class
@@ -129,6 +133,7 @@ com\football\util\FootballFunctions$PointsComparatorAPI.class
 com\football\EuroLeague\ProvisionalLineups.class
 com\football\model\Fixture.class
 com\football\model\ApiTeamstats.class
+com\football\model\HeadToHeadTeam.class
 com\football\EuroLeague\TotalMinusLosingPossession.class
 com\football\EuroLeague\CurrentLineup.class
 com\football\EuroLeague\totalMinusSetPlayTaken.class
